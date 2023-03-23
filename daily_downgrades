@@ -1,0 +1,8 @@
+select DATE_FORMAT(a.sl_activity_ts, 'yyyy-MM-dd') activity_date, a.sl_member_id cheetahID,
+    m.integration_id bcID, m.string_attr['enrollment_site'] enrollment_site, COALESCE(a.string_attr['new_tier'], 0) newTier,
+    COALESCE(a.string_attr['old_tier'], 0) oldTier
+from activity a
+left join member m on a.sl_member_id = m.member_id    
+where a.sl_activity_ts > date_sub(current_date, 7) and a.sl_type = 'tier_migration'
+and a.string_attr['new_tier'] != 'summit' and (a.string_attr['old_tier'] = 'summit' or (a.string_attr['old_tier'] = 'switchback'))
+order by a.sl_activity_ts DESC
