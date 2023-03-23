@@ -1,0 +1,18 @@
+select DATE_FORMAT(a.sl_activity_ts, 'yyyy-MM-dd') activity_date, 
+COALESCE(sum(case
+    when a.sl_type = 'sl_coupon' and a.sl_parent_id = 1 then 1 else 0 end), 0) count_used_coupons, 
+COALESCE(sum(case
+    when a.sl_type rlike '^points_pending_to_active$' then a.earned_metrics['active_points'] else null end), 0) sum_active_pts,
+COALESCE(sum(case
+    when a.sl_type rlike '^sl_purchase$' then a.earned_metrics['pending_points'] else null end), 0) sum_pending_pts,
+COALESCE(sum(case
+    when a.sl_type rlike '^sl_rewards$' then a.earned_metrics['active_points'] else null end), 0) sum_redeemed_pts,
+COALESCE(sum(case
+    when a.sl_type rlike '^sl_expire$' then a.earned_metrics['active_points'] else null end), 0) sum_expired_pts,
+COALESCE(sum(case
+    when a.sl_type rlike '^returned_item$' then a.earned_metrics['active_points'] else null end), 0) sum_returned_pts
+from activity a
+left join member m on a.sl_member_id = m.member_id
+where a.sl_activity_ts >= TIMESTAMP('2023-03-12 00:00:00Z') and not m.test_member and not m.visitor 
+group by 1 
+order by 1 desc
